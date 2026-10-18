@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="localconverter-token" content="{{.Token}}">
+  <meta name="heartbeat-seconds" content="{{.HeartbeatSeconds}}">
+  <title>LocalConverter 摄像头调试</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script defer src="/assets/reader.js"></script>
+  <script defer src="/assets/app.js"></script>
+</head>
+<body>
+<main>
+  <header><span class="eyebrow">LOCALCONVERTER · 本机采集</span><h1>摄像头连接测试</h1><p>填写设备信息，验证本机的 RTSP 预览和截图。</p></header>
+  <section class="setup">
+    <label>开发联调访问凭证（复制到系统配置 → 网络配置）<input type="text" value="{{.Token}}" readonly autocomplete="off" spellcheck="false"></label>
+    <form id="camera-form">
+      <div class="fields"><label>设备 ID<input id="device-id" value="camera-1" required maxlength="128"></label><label>配置版本<input id="config-version" type="number" value="0" min="0" step="1" required></label></div>
+      <label>RTSP 地址<input id="rtsp-url" type="text" placeholder="rtsp://192.168.1.101:554/live" required autocomplete="off" spellcheck="false"></label>
+      <div class="actions"><button id="connect" type="submit">连接并预览</button><button id="capture" type="button" disabled>拍照</button><button id="disconnect" type="button" disabled>关闭连接</button></div>
+    </form>
+    <p id="tools">正在检查媒体工具…</p>
+    <p id="status" role="status" aria-live="polite">尚未连接摄像头</p>
+  </section>
+  <section class="media-grid">
+    <article><div class="panel-title"><h2>实时预览</h2><span>WebRTC</span></div><div class="stage"><video id="video" autoplay muted playsinline controls></video><p id="video-empty">连接后显示摄像头画面</p></div></article>
+    <article><div class="panel-title"><h2>截图</h2><a id="download" hidden download="camera.jpg">下载图片</a></div><div class="stage"><img id="snapshot" alt="摄像头截图" hidden><p id="snapshot-empty">点击拍照获取当前画面</p></div></article>
+  </section>
+  <footer>此页面仅用于本机调试，不保存 RTSP 地址。图片可手动下载；尚未接入业务标注页面。</footer>
+</main>
+</body>
+</html>

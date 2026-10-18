@@ -1,0 +1,24 @@
+{
+  "listen": "127.0.0.1:18090",
+  "access_token": "88888888",
+  "allowed_origins": ["http://localhost:9527", "http://127.0.0.1:9527"],
+  "log_directory": "D:\\projects\\logs",
+  "media": {
+    "ffmpeg": "tools/ffmpeg/ffmpeg.exe",
+    "mediamtx": "tools/mediamtx/mediamtx.exe",
+    "api_address": "127.0.0.1:19997",
+    "rtsp_address": "127.0.0.1:18554",
+    "webrtc_address": "127.0.0.1:18889",
+    "ice_address": "127.0.0.1:18189",
+    "connect_timeout_seconds": 15,
+    "snapshot_timeout_seconds": 10
+  },
+  "camera": {
+    "max_connections": 4,
+    "max_sessions": 16,
+    "max_concurrent_snapshots": 2,
+    "heartbeat_interval_seconds": 10,
+    "session_ttl_seconds": 30,
+    "idle_close_seconds": 5
+  }
+}
