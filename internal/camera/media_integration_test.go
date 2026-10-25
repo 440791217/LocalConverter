@@ -22,7 +22,7 @@ func TestRealMediaPipeline(t *testing.T) {
 	testRealMediaPipeline(t, "libx264")
 }
 
-func TestRealMediaPipelineH265Compatibility(t *testing.T) {
+func TestRealMediaPipelineRejectsH265(t *testing.T) {
 	testRealMediaPipeline(t, "libx265")
 }
 
@@ -99,6 +99,12 @@ func testRealMediaPipeline(t *testing.T, codec string) {
 	manager := NewManager(opts, media)
 	defer manager.Close()
 	s, err := manager.Open(ctx, OpenRequest{DeviceID: "synthetic-test-only", ConfigVersion: 1, RTSPURL: fixtureURL.String()})
+	if codec == "libx265" {
+		if e, ok := err.(*Error); !ok || e.Status != 422 {
+			t.Fatalf("H265 must be rejected: %v", err)
+		}
+		return
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,37 +126,9 @@ func testRealMediaPipeline(t *testing.T, codec string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	previewPath := media.PreviewPath(path)
-	if codec == "libx265" {
-		if previewPath == path {
-			t.Fatal("H265 source lacks H264 preview")
-		}
-		var output struct {
-			Tracks []string `json:"tracks"`
-		}
-		if err := media.call(ctx, http.MethodGet, "/v3/paths/get/"+previewPath, nil, &output); err != nil {
-			t.Fatal(err)
-		}
-		if len(output.Tracks) != 1 || output.Tracks[0] != "H264" {
-			t.Fatalf("preview is not H264: %v", output.Tracks)
-		}
-		second, err := manager.Open(ctx, OpenRequest{DeviceID: "synthetic-test-only", ConfigVersion: 1, RTSPURL: fixtureURL.String()})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(media.previews) != 1 {
-			t.Fatal("shared camera started duplicate encoders")
-		}
-		manager.Release(second.ID)
-	}
 	manager.Release(s.ID)
 	if ready, _ := media.Ready(ctx, path); ready {
 		t.Fatal("released source still ready")
-	}
-	if previewPath != path {
-		if ready, _ := media.Ready(ctx, previewPath); ready {
-			t.Fatal("released compatibility preview still ready")
-		}
 	}
 	if _, err = manager.Snapshot(ctx, s.ID); err == nil {
 		t.Fatal("closed session can still capture")

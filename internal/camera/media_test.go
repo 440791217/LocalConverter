@@ -6,6 +6,19 @@ import (
 	"testing"
 )
 
+func TestOnlyH264VideoIsAccepted(t *testing.T) {
+	for _, tracks := range [][]string{{"H264"}, {"H264", "MPEG-4 Audio"}} {
+		if err := requireH264(tracks); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tracks := range [][]string{{"H265"}, {"AV1"}, {"MPEG-4 Audio"}, {}} {
+		if err := requireH264(tracks); err == nil {
+			t.Fatalf("unsupported video accepted: %v", tracks)
+		}
+	}
+}
+
 func TestMediaLogRedactsURLsAcrossProcessOutputChunks(t *testing.T) {
 	var output bytes.Buffer
 	writer := &safeMediaLog{file: &output}

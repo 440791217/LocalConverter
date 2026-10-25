@@ -190,7 +190,7 @@ func NewHandler(logger *log.Logger, rt Runtime) http.Handler {
 			apiError(w, err)
 			return
 		}
-		path = rt.Media.PreviewPath(path)
+		// H.264 is forwarded without re-encoding.
 		prefix := "/sessions/" + id + "/whep"
 		suffix := strings.TrimPrefix(r.URL.Path, prefix)
 		if suffix != "" && (strings.Contains(strings.TrimPrefix(suffix, "/"), "/") || strings.Contains(suffix, "..")) {

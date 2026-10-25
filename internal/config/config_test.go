@@ -15,7 +15,7 @@ func TestLoadPreservesDefaultsAndRejectsMistypedConfiguration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Listen != "127.0.0.1:18091" || cfg.Camera.MaxConnections != 2 || cfg.Camera.SessionTTLSeconds != 30 {
+	if cfg.Listen != "127.0.0.1:18091" || cfg.Camera.MaxConnections != 2 || cfg.Camera.SessionTTLSeconds != 30 || cfg.Media.ConnectTimeoutSeconds != 15 {
 		t.Fatalf("partial configuration lost defaults: %+v", cfg)
 	}
 	for _, input := range []string{

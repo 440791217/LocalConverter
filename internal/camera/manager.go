@@ -105,6 +105,24 @@ func (m *Manager) Open(ctx context.Context, r OpenRequest) (Session, error) {
 		c = nil
 	}
 	if c == nil {
+		// A released standby source must not occupy a slot for the whole idle
+		// grace period when the next task camera needs that slot. Never evict
+		// a source that another page or an in-flight snapshot still uses.
+		if len(m.connections) >= m.options.MaxConnections {
+			for device, idle := range m.connections {
+				if idle.refs != 0 || idle.pins != 0 || idle.idleAt.IsZero() {
+					continue
+				}
+				cleanup, cancel := context.WithTimeout(ctx, 3*time.Second)
+				err := m.backend.Remove(cleanup, idle.path)
+				cancel()
+				if err != nil {
+					continue
+				}
+				delete(m.connections, device)
+				break
+			}
+		}
 		if len(m.connections) >= m.options.MaxConnections {
 			m.mu.Unlock()
 			return Session{}, failure(429, "采集连接已达上限，请关闭其他摄像头后重试")

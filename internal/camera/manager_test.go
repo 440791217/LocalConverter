@@ -82,6 +82,35 @@ func TestSharedConnectionAndIndependentSessions(t *testing.T) {
 		t.Fatalf("media removed %d times", b.removes)
 	}
 }
+
+func TestNewCameraCanReplaceIdleSlotButNeverAnotherViewersSource(t *testing.T) {
+	b := &fakeMedia{}
+	o := DefaultOptions()
+	o.MaxConnections = 1
+	m := NewManager(o, b)
+	defer m.Close()
+	a, err := m.Open(context.Background(), validRequest())
+	if err != nil {
+		t.Fatal(err)
+	}
+	next := validRequest()
+	next.DeviceID = "camera-2"
+	_, err = m.Open(context.Background(), next)
+	requireStatus(t, err, 429)
+	if b.removes != 0 {
+		t.Fatal("active source was evicted")
+	}
+	m.Release(a.ID)
+	if b.removes != 0 {
+		t.Fatal("idle grace period should normally retain the source")
+	}
+	if _, err = m.Open(context.Background(), next); err != nil {
+		t.Fatal(err)
+	}
+	if len(m.connections) != 1 || b.removes != 1 || b.adds != 2 {
+		t.Fatal("idle source did not yield its capacity slot")
+	}
+}
 func TestTimeoutAndFailedOpenReleaseSources(t *testing.T) {
 	b := &fakeMedia{waitError: failure(504, "timeout")}
 	m := NewManager(DefaultOptions(), b)

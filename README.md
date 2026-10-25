@@ -27,13 +27,15 @@
 ## 开发和构建
 
 ```powershell
-go run ./cmd/localconverter -config configs/localconverter.example.json
+go run ./cmd/localconverter -config configs/localconverter.json
 go build -o bin/localconverter.exe ./cmd/localconverter
 ```
 
 `-listen 127.0.0.1:18091` 可以覆盖 JSON 中的控制接口地址。只有控制接口端口改变，媒体端口仍由 JSON 配置决定，因此不要同时运行使用相同媒体端口的多个实例。
 
 Go 不在当前终端 PATH 中时，重新打开终端，或使用本机路径 `D:\Program Files\Go\bin\go.exe`。
+
+采集服务只做 H.264 直通，保持源分辨率与源帧率，不提供限帧或预览重编码。刷新帧率和检测帧率统一在业务系统配置中维护，摄像头可覆盖公共参数。详见 [网络与预览配置](docs/network-integration.md)。
 
 ## 代码划分
 

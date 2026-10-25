@@ -24,7 +24,7 @@ func main() {
 }
 
 func run() error {
-	configPath := flag.String("config", "", "optional JSON configuration file")
+	configPath := flag.String("config", "configs/localconverter.json", "JSON configuration file")
 	listen := flag.String("listen", "", "override the configured HTTP listen address")
 	flag.Parse()
 	cfg, err := config.Load(*configPath)
@@ -47,6 +47,7 @@ func run() error {
 	}
 	defer file.Close()
 	logger := log.New(io.MultiWriter(file, os.Stderr), "", log.LstdFlags)
+	logger.Print("H264 passthrough: source resolution and frame rate; no re-encoding")
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	media := camera.NewMedia(cfg.Media, cfg.LogDirectory, logger)

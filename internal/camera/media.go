@@ -48,11 +48,10 @@ type Media struct {
 	configPath     string
 	client         *http.Client
 	closed         bool
-	previews       map[string]*previewProcess
 }
 
 func NewMedia(o MediaOptions, logDirectory string, logger *log.Logger) *Media {
-	return &Media{options: o, logDirectory: logDirectory, logger: logger, user: "localconverter", password: newID(), client: &http.Client{Timeout: 3 * time.Second}, previews: make(map[string]*previewProcess)}
+	return &Media{options: o, logDirectory: logDirectory, logger: logger, user: "localconverter", password: newID(), client: &http.Client{Timeout: 3 * time.Second}}
 }
 
 func (m *Media) Tools() ToolStatus {
@@ -255,9 +254,6 @@ func (m *Media) Add(ctx context.Context, path, address string) error {
 	return m.call(ctx, http.MethodPost, "/v3/config/paths/add/"+path, map[string]any{"source": address, "sourceOnDemand": false, "rtspTransport": "tcp"}, nil)
 }
 func (m *Media) Remove(ctx context.Context, path string) error {
-	if err := m.removePreview(ctx, path); err != nil {
-		return err
-	}
 	err := m.call(ctx, http.MethodDelete, "/v3/config/paths/delete/"+path, nil, nil)
 	if e, ok := err.(*Error); ok && e.Status == 404 {
 		return nil
@@ -276,18 +272,8 @@ func (m *Media) Ready(ctx context.Context, path string) (bool, error) {
 	if err != nil || !state.Ready {
 		return state.Ready, err
 	}
-	if needsPreviewConversion(state.Tracks) {
-		if err := m.ensurePreview(ctx, path); err != nil {
-			return false, err
-		}
-		var preview struct {
-			Ready bool `json:"ready"`
-		}
-		err = m.call(ctx, http.MethodGet, "/v3/paths/get/"+m.PreviewPath(path), nil, &preview)
-		if e, ok := err.(*Error); ok && e.Status == 404 {
-			return false, nil
-		}
-		return preview.Ready, err
+	if err := requireH264(state.Tracks); err != nil {
+		return false, err
 	}
 	return true, nil
 }
@@ -377,16 +363,6 @@ func (m *Media) Close() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.closed = true
-	for _, preview := range m.previews {
-		preview.cancel()
-	}
-	for _, preview := range m.previews {
-		select {
-		case <-preview.done:
-		case <-time.After(5 * time.Second):
-		}
-	}
-	m.previews = make(map[string]*previewProcess)
 	if m.cancel != nil {
 		m.cancel()
 	}

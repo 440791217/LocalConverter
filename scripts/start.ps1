@@ -1,4 +1,4 @@
-param([string]$Config = 'configs/localconverter.example.json')
+param([string]$Config = 'configs/localconverter.json')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 Push-Location $projectRoot

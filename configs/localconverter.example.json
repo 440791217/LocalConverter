@@ -1,7 +1,10 @@
 {
   "listen": "127.0.0.1:18090",
   "access_token": "88888888",
-  "allowed_origins": ["http://localhost:9527", "http://127.0.0.1:9527"],
+  "allowed_origins": [
+    "http://localhost:9527",
+    "http://127.0.0.1:9527"
+  ],
   "log_directory": "D:\\projects\\logs",
   "media": {
     "ffmpeg": "tools/ffmpeg/ffmpeg.exe",
